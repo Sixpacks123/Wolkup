@@ -10,13 +10,15 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxthq/studio',
     '@vueuse/nuxt',
-    'nuxt-og-image'
+    
+    'nuxt-og-image',
+    '@nuxtjs/supabase',
+    '@nuxtjs/leaflet'
   ],
 
   devtools: {
     enabled: true
   },
-
   colorMode: {
     disableTransition: true
   },
@@ -61,6 +63,12 @@ export default defineNuxtConfig({
         commaDangle: 'never',
         braceStyle: '1tbs'
       }
+    }
+  },
+  supabase: {
+    redirectOptions: {
+      login: '/login',
+      exclude: ['/', '/about'] // Autoriser ces pages sans redirection
     }
   }
 })
