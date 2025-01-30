@@ -1,11 +1,7 @@
 <script setup lang="ts">
 const { data: page } = await useAsyncData('index', () => queryContent('/').findOne())
-if (!page.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
-}
 
 useSeoMeta({
-  titleTemplate: '',
   title: page.value.title,
   ogTitle: page.value.title,
   description: page.value.description,
@@ -14,25 +10,25 @@ useSeoMeta({
 </script>
 
 <template>
-  <div v-if="page">
+  <div>
     <ULandingHero
       :title="page.hero.title"
       :description="page.hero.description"
       :links="page.hero.links"
+      class="animate-slidein"
+      orientation="horizontal"
     >
-      <div class="absolute inset-0 landing-grid z-[-1] [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]" />
-
       <template #headline>
         <UBadge
           v-if="page.hero.headline"
           variant="subtle"
           size="lg"
-          class="relative rounded-full font-semibold"
+          class="relative rounded-full font-semibold animate-slidein"
         >
           <NuxtLink
             :to="page.hero.headline.to"
             target="_blank"
-            class="focus:outline-none"
+            class="focus:outline-none animate-slidein"
             tabindex="-1"
           >
             <span
@@ -50,28 +46,32 @@ useSeoMeta({
           />
         </UBadge>
       </template>
+
+      <ImagePlaceholder />
+      <template #center>
+        <ULandingLogos
+          :title="page.logos.title"
+          align="center"
+        >
+          <UIcon
+            v-for="icon in page.logos.icons"
+            :key="icon"
+            :name="icon"
+            class="w-12 h-12 lg:w-16 lg:h-16 flex-shrink-0 text-gray-900 dark:text-white"
+          />
+        </ULandingLogos>
+      </template>
     </ULandingHero>
-
-    <ULandingSection class="!pt-0">
-      <ImagePlaceholder />
-    </ULandingSection>
-
-    <ULandingSection
-      v-for="(section, index) in page.sections"
-      :key="index"
-      :title="section.title"
-      :description="section.description"
-      :align="section.align"
-      :features="section.features"
-    >
-      <ImagePlaceholder />
-    </ULandingSection>
 
     <ULandingSection
       :title="page.features.title"
       :description="page.features.description"
+      :headline="page.features.headline"
     >
-      <UPageGrid>
+      <UPageGrid
+        id="features"
+        class="scroll-mt-[calc(var(--header-height)+140px+128px+96px)]"
+      >
         <ULandingCard
           v-for="(item, index) in page.features.items"
           :key="index"
@@ -81,45 +81,67 @@ useSeoMeta({
     </ULandingSection>
 
     <ULandingSection
+      :title="page.pricing.title"
+      :description="page.pricing.description"
+      :headline="page.pricing.headline"
+    >
+      <UPricingGrid
+        id="pricing"
+        class="scroll-mt-[calc(var(--header-height)+140px+128px+96px)]"
+      >
+        <UPricingCard
+          v-for="(plan, index) in page.pricing.plans"
+          :key="index"
+          v-bind="plan"
+        />
+      </UPricingGrid>
+    </ULandingSection>
+
+    <ULandingSection
       :headline="page.testimonials.headline"
       :title="page.testimonials.title"
       :description="page.testimonials.description"
     >
-      <UPageColumns class="xl:columns-4">
+      <UPageColumns
+        id="testimonials"
+        class="xl:columns-4 scroll-mt-[calc(var(--header-height)+140px+128px+96px)]"
+      >
         <div
           v-for="(testimonial, index) in page.testimonials.items"
           :key="index"
           class="break-inside-avoid"
         >
-          <ULandingTestimonial
-            v-bind="testimonial"
-            class="bg-gray-100/50 dark:bg-gray-800/50"
-          />
+          <ULandingTestimonial v-bind="testimonial" />
         </div>
       </UPageColumns>
     </ULandingSection>
 
-    <ULandingSection>
+    <ULandingSection class="bg-primary-50 dark:bg-primary-400 dark:bg-opacity-10">
       <ULandingCTA
         v-bind="page.cta"
-        class="bg-gray-100/50 dark:bg-gray-800/50"
+        :card="false"
+      />
+    </ULandingSection>
+
+    <ULandingSection
+      id="faq"
+      :title="page.faq.title"
+      :description="page.faq.description"
+      class="scroll-mt-[var(--header-height)]"
+    >
+      <ULandingFAQ
+        multiple
+        :items="page.faq.items"
+        :ui="{
+          button: {
+            label: 'font-semibold',
+            trailingIcon: {
+              base: 'w-6 h-6'
+            }
+          }
+        }"
+        class="max-w-4xl mx-auto"
       />
     </ULandingSection>
   </div>
 </template>
-
-<style scoped>
-.landing-grid {
-  background-size: 100px 100px;
-  background-image:
-    linear-gradient(to right, rgb(var(--color-gray-200)) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(var(--color-gray-200)) 1px, transparent 1px);
-}
-.dark {
-  .landing-grid {
-    background-image:
-      linear-gradient(to right, rgb(var(--color-gray-800)) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(var(--color-gray-800)) 1px, transparent 1px);
-  }
-}
-</style>
