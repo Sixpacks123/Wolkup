@@ -1,54 +1,86 @@
 <script setup lang="ts">
+// Étiquette : 'Courriel',
+import { useSupabaseClient } from '#imports'
+
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
 })
 
 useSeoMeta({
-  title: 'Login'
+  title: 'Connexion',
 })
 
-const fields = [{
-  name: 'email',
-  type: 'email',
-  label: 'Email',
-  placeholder: 'Enter your email'
-}, {
-  name: 'password',
-  label: 'Password',
-  type: 'password',
-  placeholder: 'Enter your password'
-}]
+// Initialiser Supabase
+const supabase = useSupabaseClient()
 
+// Champs du formulaire
+const fields = [
+  {
+    name: 'email',
+    type: 'email',
+    label: 'Courriel',
+    placeholder: 'Entrez votre courriel',
+  },
+  {
+    name: 'password',
+    type: 'password',
+    label: 'Mot de passe',
+    placeholder: 'Entrez votre mot de passe',
+  },
+]
+
+// Validation des champs
 const validate = (state: any) => {
   const errors = []
-  if (!state.email) errors.push({ path: 'email', message: 'Email is required' })
-  if (!state.password) errors.push({ path: 'password', message: 'Password is required' })
+  if (!state.email) errors.push({ path: 'email', message: 'Le courriel est requis' })
+  if (!state.password) errors.push({ path: 'password', message: 'Le mot de passe est requis' })
   return errors
 }
 
-const providers = [{
-  label: 'Continue with GitHub',
-  icon: 'i-simple-icons-github',
-  color: 'white' as const,
-  click: () => {
-    console.log('Redirect to GitHub')
-  }
-}]
+// Connexion à Supabase
+async function onSubmit(data: any) {
+  const { email, password } = data
 
-function onSubmit(data: any) {
-  console.log('Submitted', data)
+  try {
+    const { user, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      console.error('Erreur lors de la connexion :', error.message)
+      alert('Échec de la connexion : ' + error.message)
+    } else {
+      console.log('Utilisateur connecté :', user)
+      // Redirection après la connexion
+      navigateTo('/dashboard/')
+    }
+  } catch (err) {
+    console.error('Erreur inattendue :', err)
+    alert('Une erreur inattendue s’est produite. Veuillez réessayer.')
+  }
 }
+
+// Fournisseurs OAuth (optionnel, exemple avec GitHub)
+const providers = [
+  {
+    label: 'Continuer avec GitHub',
+    icon: 'i-simple-icons-github',
+    color: 'white' as const,
+    click: async () => {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'github' })
+      if (error) {
+        console.error('Erreur OAuth :', error.message)
+        alert('Échec de la connexion OAuth : ' + error.message)
+      }
+    },
+  },
+]
 </script>
 
-<!-- eslint-disable vue/multiline-html-element-content-newline -->
-<!-- eslint-disable vue/singleline-html-element-content-newline -->
 <template>
   <UCard class="max-w-sm w-full bg-white/75 dark:bg-white/5 backdrop-blur">
     <UAuthForm
       :fields="fields"
       :validate="validate"
       :providers="providers"
-      title="Welcome back"
+      title="Bienvenue à nouveau"
       align="top"
       icon="i-heroicons-lock-closed"
       :ui="{ base: 'text-center', footer: 'text-center' }"
@@ -56,24 +88,32 @@ function onSubmit(data: any) {
       @submit="onSubmit"
     >
       <template #description>
-        Don't have an account? <NuxtLink
+        Vous n'avez pas de compte ?
+        <NuxtLink
           to="/signup"
           class="text-primary font-medium"
-        >Sign up</NuxtLink>.
+        >
+          Inscrivez-vous
+        </NuxtLink>.
       </template>
 
       <template #password-hint>
         <NuxtLink
-          to="/"
+          to="/forgot-password"
           class="text-primary font-medium"
-        >Forgot password?</NuxtLink>
+        >
+          Mot de passe oublié ?
+        </NuxtLink>
       </template>
 
       <template #footer>
-        By signing in, you agree to our <NuxtLink
-          to="/"
+        En vous connectant, vous acceptez nos
+        <NuxtLink
+          to="/terms"
           class="text-primary font-medium"
-        >Terms of Service</NuxtLink>.
+        >
+          Conditions d'utilisation
+        </NuxtLink>.
       </template>
     </UAuthForm>
   </UCard>
